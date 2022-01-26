@@ -1,4 +1,5 @@
 ﻿using CarFactory_Domain;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -35,16 +36,17 @@ namespace CarFactory_Factory
 
         public IEnumerable<Car> BuildCars(IEnumerable<CarSpecification> specs)
         {
-            var cars = new List<Car>();
-            foreach(var spec in specs)
+            List<Car> cars = new List<Car>();
+            foreach(CarSpecification spec in specs)
             {
-                var chassis = _chassisProvider.GetChassis(spec.Manufacturer, spec.NumberOfDoors);
-                var engine = _engineProvider.GetEngine(spec.Manufacturer);
-                var interior = _interiorProvider.GetInterior(spec);
-                var wheels = _wheelProvider.GetWheels();
-                var car = _carAssembler.AssembleCar(chassis, engine, interior, wheels);
-                var paintedCar = _painter.PaintCar(car, spec.PaintJob);
+                Chassis chassis = _chassisProvider.GetChassis(spec.Manufacturer, spec.NumberOfDoors);
+                CarFactory_Domain.Engine.Engine engine = _engineProvider.GetEngine(spec.Manufacturer);
+                Interior interior = _interiorProvider.GetInterior(spec);
+                IEnumerable<Wheel> wheels = _wheelProvider.GetWheels();
+                Car car = _carAssembler.AssembleCar(chassis, engine, interior, wheels);
+                Car paintedCar = _painter.PaintCar(car, spec.PaintJob);
                 cars.Add(paintedCar);
+                ;
             }
             return cars;
         }

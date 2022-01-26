@@ -12,6 +12,15 @@ namespace CarFactory_Domain
         public const string ALLOWED_CHARACTERS = "abcdefghijkmnopqrstuvwxyz0123456789";
         private bool IsUnlocked = false;
         private readonly string Solution;
+
+        protected Color baseColor;
+        protected Color stripeColor;
+        protected Color dotColor;
+
+        public string BaseColor => stripeColor != Color.Empty ? baseColor.ToString() : null;
+        public string StripeColor => stripeColor != Color.Empty ? stripeColor.ToString() : null;
+        public string DotColor => dotColor != Color.Empty ? dotColor.ToString() : null;
+
         public PaintJob()
         {
             Solution = CreateString(PuzzleAnswerLength());
@@ -43,7 +52,7 @@ namespace CarFactory_Domain
 
         private static string CreateString(int stringLength)
         {
-            var rd = new Random(((int) DateTime.Now.Ticks)/5*5);
+            var rd = new Random(((int)DateTime.Now.Ticks) / 5 * 5);
             char[] chars = new char[stringLength];
 
             for (int i = 0; i < stringLength; i++)
@@ -57,10 +66,10 @@ namespace CarFactory_Domain
 
     public class SingleColorPaintJob : PaintJob
     {
-        public Color Color { get; set; }
+        //public Color Color { get; set; }
         public SingleColorPaintJob(Color color) : base()
         {
-            Color = color;
+            baseColor = color;
         }
 
         protected override int PuzzleAnswerLength() => 2;
@@ -68,12 +77,12 @@ namespace CarFactory_Domain
 
     public class StripedPaintJob : PaintJob
     {
-        public Color BaseColor { get; set; }
-        public Color StripeColor { get; set; }
+        //public Color BaseColor { get; set; }
+        //public Color StripeColor { get; set; }
         public StripedPaintJob(Color baseCol, Color stripeCol) : base()
         {
-            BaseColor = baseCol;
-            StripeColor = stripeCol;
+            baseColor = baseCol;
+            stripeColor = stripeCol;
         }
 
         protected override int PuzzleAnswerLength() => 4;
@@ -81,12 +90,12 @@ namespace CarFactory_Domain
 
     public class DottedPaintJob : PaintJob
     {
-        public Color BaseColor { get; set; }
-        public Color DotColor { get; set; }
+        //public Color BaseColor { get; set; }
+        //public Color DotColor { get; set; }
         public DottedPaintJob(Color baseCol, Color dotCol) : base()
         {
-            BaseColor = baseCol;
-            DotColor = dotCol;
+            baseColor = baseCol;
+            dotColor = dotCol;
         }
 
         protected override int PuzzleAnswerLength() => 3;

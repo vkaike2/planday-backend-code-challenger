@@ -32,13 +32,13 @@ namespace CarFactory_Engine
 
         public Engine GetEngine(Manufacturer manufacturer)
         {
-            var specification = _getEngineSpecification.GetForManufacturer(manufacturer);
-                        
-            var engineBlock = MakeEngineBlock(specification.CylinderCount);
+            EngineSpecification specification = _getEngineSpecification.GetForManufacturer(manufacturer);
 
-            var engine = new Engine(engineBlock, specification.Name);
+            EngineBlock engineBlock = MakeEngineBlock(specification.CylinderCount);
 
-            var pistons = _getPistons.Get(specification.CylinderCount);
+            Engine engine = new Engine(engineBlock, specification.Name);
+
+            int pistons = _getPistons.Get(specification.CylinderCount);
 
             InstallPistons(engine, pistons);
 

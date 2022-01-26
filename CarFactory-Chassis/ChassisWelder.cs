@@ -9,9 +9,9 @@ namespace CarFactory_Chasis
 {
     public class ChassisWelder
     {
-        private ChassisPart _firstPart;
-        private ChassisPart _secondPart;
-        private ChassisPart _thirdPart;
+        private ChassisPart _firstPart;  // back
+        private ChassisPart _secondPart; // cabin
+        private ChassisPart _thirdPart;  // front
         public bool StartWeld(ChassisPart firstPart)
         {
             if(_firstPart == null)
@@ -57,9 +57,12 @@ namespace CarFactory_Chasis
             {
                 isValid = true;
             }
+            
+            string back = _firstPart.GetChassisType();
+            string cabin = _secondPart.GetChassisType();
+            string front = _thirdPart.GetChassisType();
 
-
-            var description = _secondPart.GetChassisType()+ " " + _firstPart.GetChassisType() + " " + _thirdPart.GetChassisType();
+            string description = _secondPart.GetChassisType()+ " " + _firstPart.GetChassisType() + " " + _thirdPart.GetChassisType();
             return new Chassis(description, isValid);
         }
     }

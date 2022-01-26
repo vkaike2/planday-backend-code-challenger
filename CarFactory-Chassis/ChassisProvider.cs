@@ -15,6 +15,9 @@ namespace CarFactory_Chasis
         private readonly ISteelSubcontractor _steelSubcontractor;
         private readonly IGetChassisRecipeQuery _chassisRecipeQuery;
 
+        public int SteelInventory { get; private set; }
+
+
         public ChassisProvider(ISteelSubcontractor steelSubcontractor, IGetChassisRecipeQuery chassisRecipeQuery)
         {
             _steelSubcontractor = steelSubcontractor;
@@ -22,20 +25,22 @@ namespace CarFactory_Chasis
         }
         public Chassis GetChassis(Manufacturer manufacturer, int numberOfDoors)
         {
-            var chassisRecipe = _chassisRecipeQuery.Get(manufacturer);
+            ChassisRecipe chassisRecipe = _chassisRecipeQuery.Get(manufacturer);
 
-            var chassisParts = new List<ChassisPart>();
+            List<ChassisPart> chassisParts = new List<ChassisPart>();
             chassisParts.Add(new ChassisBack(chassisRecipe.BackId));
             chassisParts.Add(new ChassisCabin(chassisRecipe.CabinId));
             chassisParts.Add(new ChassisFront(chassisRecipe.FrontId));
 
             CheckChassisParts(chassisParts);
-
+            
+            //Cost = backCost + cabinCost + frontCost
             SteelInventory += _steelSubcontractor.OrderSteel(chassisRecipe.Cost).Select(d => d.Amount).Sum();
             CheckForMaterials(chassisRecipe.Cost);
+
             SteelInventory -= chassisRecipe.Cost;
 
-            var chassisWelder = new ChassisWelder();
+            ChassisWelder chassisWelder = new ChassisWelder();
 
             chassisWelder.StartWeld(chassisParts[0]);
             chassisWelder.ContinueWeld(chassisParts[1], numberOfDoors);
@@ -44,7 +49,6 @@ namespace CarFactory_Chasis
             return chassisWelder.GetChassis();
         }
 
-        public int SteelInventory { get; private set; }
 
         private void CheckForMaterials(int cost)
         {

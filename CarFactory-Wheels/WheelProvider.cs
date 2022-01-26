@@ -4,6 +4,7 @@ using System.Linq;
 using CarFactory_Domain;
 using CarFactory_Factory;
 using CarFactory_Storage;
+using Newtonsoft.Json;
 
 namespace CarFactory_Wheels
 {
@@ -18,8 +19,8 @@ namespace CarFactory_Wheels
 
         public IEnumerable<Wheel> GetWheels()
         {
-            var rubber = _getRubberQuery.Get();
-            
+            IEnumerable<Part> rubber = _getRubberQuery.Get();
+            string rubberString = JsonConvert.SerializeObject(rubber);
             return new[]
             {
                 CreateWheel(ref rubber),
@@ -31,7 +32,7 @@ namespace CarFactory_Wheels
 
         private Wheel CreateWheel(ref IEnumerable<Part> allRubber)
         {
-            var rubber = allRubber.Take(50);
+            IEnumerable<Part> rubber = allRubber.Take(50);
             
             if (rubber.Any(x => x.PartType != PartType.Rubber))
             {
