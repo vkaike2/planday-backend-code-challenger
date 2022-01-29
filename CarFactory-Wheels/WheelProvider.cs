@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CarFactory_Domain;
+using CarFactory_Domain.Exceptions;
 using CarFactory_Factory;
 using CarFactory_Storage;
 using Newtonsoft.Json;
@@ -20,7 +21,7 @@ namespace CarFactory_Wheels
         public IEnumerable<Wheel> GetWheels()
         {
             IEnumerable<Part> rubber = _getRubberQuery.Get();
-            string rubberString = JsonConvert.SerializeObject(rubber);
+
             return new[]
             {
                 CreateWheel(ref rubber),
@@ -32,12 +33,12 @@ namespace CarFactory_Wheels
 
         private Wheel CreateWheel(ref IEnumerable<Part> allRubber)
         {
-            IEnumerable<Part> rubber = allRubber.Take(50);
-            
-            if (rubber.Any(x => x.PartType != PartType.Rubber))
+            if(allRubber.Count() < 50)
             {
-                throw new Exception("parts must be rubber");
+                throw new CarFactoryException("must have at least 50 rubber parts to create a wheel");
             }
+   
+            IEnumerable<Part> rubber = allRubber.Take(50);
             
             return new Wheel(){Manufacturer = rubber.First().Manufacturer};
         }

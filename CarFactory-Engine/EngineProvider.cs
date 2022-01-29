@@ -2,11 +2,13 @@
 using CarFactory_Domain;
 using CarFactory_Domain.Engine;
 using CarFactory_Domain.Engine.EngineSpecifications;
+using CarFactory_Domain.Exceptions;
 using CarFactory_Factory;
 using CarFactory_Storage;
 using CarFactory_SubContractor;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -20,19 +22,51 @@ namespace CarFactory_Engine
         private readonly IGetEngineSpecificationQuery _getEngineSpecification;
         private readonly IMemoryCache _cache;
 
-        public EngineProvider(IGetPistons getPistons, ISteelSubcontractor steelSubContractor, 
-            IGetEngineSpecificationQuery getEngineSpecification, IMemoryCache cache)
+        private const string MEMORY_KEY = "Engines";
+
+        public EngineProvider(
+            IGetPistons getPistons,
+            ISteelSubcontractor steelSubContractor,
+            IGetEngineSpecificationQuery getEngineSpecification,
+            IMemoryCache cache
+            )
         {
             _getPistons = getPistons;
             _steelSubContractor = steelSubContractor;
-            _getEngineSpecification = getEngineSpecification ;
+            _getEngineSpecification = getEngineSpecification;
             _cache = cache;
         }
 
+        private List<EngineSpecification> TryGetEngineSpecificationFromCash()
+        {
+            List<EngineSpecification> specifications;
+            if (_cache.TryGetValue(MEMORY_KEY, out specifications))
+            {
+                return specifications;
+            }
+
+            specifications = _getEngineSpecification.GetAll();
+
+            _cache.Set(MEMORY_KEY, specifications);
+            return specifications;
+        }
 
         public Engine GetEngine(Manufacturer manufacturer)
         {
-            EngineSpecification specification = _getEngineSpecification.GetForManufacturer(manufacturer);
+            EngineSpecification specification;
+            if (_cache != null)
+            {
+                specification = this.TryGetEngineSpecificationFromCash().FirstOrDefault(e => e.Manufacturer == manufacturer);
+            }
+            else
+            {
+                specification = _getEngineSpecification.GetForManufacturer(manufacturer);
+            }
+
+            if (specification == null)
+            {
+                throw new CarFactoryException("There is no specification for this manufacturer");
+            }
 
             EngineBlock engineBlock = MakeEngineBlock(specification.CylinderCount);
 
@@ -54,11 +88,11 @@ namespace CarFactory_Engine
 
         private EngineBlock MakeEngineBlock(int cylinders)
         {
-            var requiredSteel = cylinders * EngineBlock.RequiredSteelPerCylinder;
+            int requiredSteel = cylinders * EngineBlock.RequiredSteelPerCylinder;
 
-            var steel = GetSteel(requiredSteel);
+            int steel = GetSteel(requiredSteel);
 
-            var engineBlock = new EngineBlock(steel);
+            EngineBlock engineBlock = new EngineBlock(steel);
 
             if (cylinders != engineBlock.CylinderCount)
                 throw new InvalidOperationException("Engine block does not have the required amount of cylinders");
@@ -69,9 +103,9 @@ namespace CarFactory_Engine
 
         private int GetSteel(int amount)
         {
-            if(amount > SteelInventory)
+            if (amount > SteelInventory)
             {
-                var missingSteel = amount - SteelInventory;
+                int missingSteel = amount - SteelInventory;
                 SteelInventory += _steelSubContractor.OrderSteel(missingSteel).Sum(sd => sd.Amount);
             }
 
@@ -101,12 +135,12 @@ namespace CarFactory_Engine
             if (!engine.PropulsionType.HasValue)
                 throw new InvalidOperationException($"Propulsion type must be known before installing spark plugs");
 
-            if(engine.PropulsionType.Value == Propulsion.Gasoline)
+            if (engine.PropulsionType.Value == Propulsion.Gasoline)
             {
                 //Do work 
                 SlowWorker.FakeWorkingForMillis(engine.EngineBlock.CylinderCount * 15);
                 engine.HasSparkPlugs = true;
-            }   
+            }
         }
 
 

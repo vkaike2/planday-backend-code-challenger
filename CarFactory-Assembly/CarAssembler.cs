@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CarFactory_Domain;
 using CarFactory_Domain.Engine;
+using CarFactory_Domain.Exceptions;
 using CarFactory_Factory;
 
 namespace CarFactory_Assembly
@@ -17,7 +18,7 @@ namespace CarFactory_Assembly
         public Car AssembleCar(Chassis chassis, Engine engine, Interior interior, IEnumerable<Wheel> wheels)
         {
             if (chassis == null || engine == null || interior == null || wheels == null) throw new ArgumentNullException();
-            if (wheels.Count() != 4) throw new Exception("Common cars must have 4 wheels");
+            if (wheels.Count() != 4) throw new CarFactoryException("Common cars must have 4 wheels");
             var car = new Car(chassis, engine, interior, wheels);
             CalibrateLocks(car);
             return car;
@@ -44,6 +45,7 @@ namespace CarFactory_Assembly
                 if (n >= 0)
                     return n + 1;
             }
+
             throw new ArgumentOutOfRangeException();
         }
     }

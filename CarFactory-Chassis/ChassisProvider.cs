@@ -1,7 +1,9 @@
 ﻿using CarFactory_Domain;
+using CarFactory_Domain.Exceptions;
 using CarFactory_Factory;
 using CarFactory_Storage;
 using CarFactory_SubContractor;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,39 +16,74 @@ namespace CarFactory_Chasis
     {
         private readonly ISteelSubcontractor _steelSubcontractor;
         private readonly IGetChassisRecipeQuery _chassisRecipeQuery;
+        private readonly ChassisWelder _chassisWelder;
+        private readonly IMemoryCache _cache;
+
+        private const string MEMORY_KEY = "CHASSIS";
 
         public int SteelInventory { get; private set; }
 
 
-        public ChassisProvider(ISteelSubcontractor steelSubcontractor, IGetChassisRecipeQuery chassisRecipeQuery)
+        public ChassisProvider(
+            ISteelSubcontractor steelSubcontractor,
+            IGetChassisRecipeQuery chassisRecipeQuery,
+            IMemoryCache memoryCache)
         {
             _steelSubcontractor = steelSubcontractor;
             _chassisRecipeQuery = chassisRecipeQuery;
+            _chassisWelder = new ChassisWelder();
+            _cache = memoryCache;
         }
-        public Chassis GetChassis(Manufacturer manufacturer, int numberOfDoors)
+
+
+        private List<ChassisRecipe> TryGetEngineChassisRecipeFromCash()
         {
-            ChassisRecipe chassisRecipe = _chassisRecipeQuery.Get(manufacturer);
+            List<ChassisRecipe> chassisRecipe;
+            if (_cache.TryGetValue(MEMORY_KEY, out chassisRecipe))
+            {
+                return chassisRecipe;
+            }
+
+            chassisRecipe = _chassisRecipeQuery.GetAll();
+
+            _cache?.Set(MEMORY_KEY, chassisRecipe);
+            return chassisRecipe;
+        }
+
+        public Chassis GetChassis(Manufacturer manufacturer)
+        {
+            ChassisRecipe chassisRecipe;
+            if (_cache != null)
+            {
+                chassisRecipe = this.TryGetEngineChassisRecipeFromCash().FirstOrDefault(e => e.Manufacturer == manufacturer);
+            }
+            else
+            {
+                chassisRecipe = _chassisRecipeQuery.Get(manufacturer);
+            }
+
+            if (chassisRecipe == null)
+            {
+                throw new CarFactoryException("There is no chassis recipe for this manufacturer");
+            }
 
             List<ChassisPart> chassisParts = new List<ChassisPart>();
+
             chassisParts.Add(new ChassisBack(chassisRecipe.BackId));
             chassisParts.Add(new ChassisCabin(chassisRecipe.CabinId));
             chassisParts.Add(new ChassisFront(chassisRecipe.FrontId));
 
             CheckChassisParts(chassisParts);
-            
-            //Cost = backCost + cabinCost + frontCost
             SteelInventory += _steelSubcontractor.OrderSteel(chassisRecipe.Cost).Select(d => d.Amount).Sum();
             CheckForMaterials(chassisRecipe.Cost);
 
             SteelInventory -= chassisRecipe.Cost;
 
-            ChassisWelder chassisWelder = new ChassisWelder();
 
-            chassisWelder.StartWeld(chassisParts[0]);
-            chassisWelder.ContinueWeld(chassisParts[1], numberOfDoors);
-            chassisWelder.FinishWeld(chassisParts[2]);
- 
-            return chassisWelder.GetChassis();
+            return _chassisWelder.Weld(
+                (ChassisBack)chassisParts[0],
+                (ChassisCabin)chassisParts[1],
+                (ChassisFront)chassisParts[2]);
         }
 
 
@@ -54,7 +91,7 @@ namespace CarFactory_Chasis
         {
             if (SteelInventory < cost)
             {
-                throw new Exception("Not enough chassis material");
+                throw new CarFactoryException("Not enough chassis material");
             }
         }
 
@@ -62,17 +99,15 @@ namespace CarFactory_Chasis
         {
             if (parts == null)
             {
-                throw new Exception("No chassis parts");
+                throw new CarFactoryException("No chassis parts");
             }
-
-            if (parts.Count > 3)
+            else if (parts.Count > 3)
             {
-                throw new Exception("Chassis parts missing");
+                throw new CarFactoryException("Chassis parts missing");
             }
-
-            if (parts.Count < 3)
+            else if (parts.Count < 3)
             {
-                throw new Exception("To many chassis parts");
+                throw new CarFactoryException("To many chassis parts");
             }
         }
     }

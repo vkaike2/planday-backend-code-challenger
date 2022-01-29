@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarFactory_Domain.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +24,7 @@ namespace CarFactory_Chasis
                 case 2:
                     return "Family car";
                 default:
-                    throw new Exception("Unknown frontend type");
+                    throw new CarFactoryException("Unknown frontend type");
             }
         }
 

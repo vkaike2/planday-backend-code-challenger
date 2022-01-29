@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CarFactory_Domain.Models.InputModels
+namespace CarFactory.InputModels
 {
     public class BuildCarInputModelItem
     {

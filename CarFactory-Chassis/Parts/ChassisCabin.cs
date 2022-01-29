@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarFactory_Domain.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +19,11 @@ namespace CarFactory_Chasis
             switch (_typeId)
             {
                 case 0:
-                    return "Two Door";
+                    return "Three Doors";
                 case 1:
-                    return "Four Door";
+                    return "Five Doors";
                 default:
-                    throw new Exception("Unknown cabin type");
+                    throw new CarFactoryException("Unknown cabin type");
             }
         }
 

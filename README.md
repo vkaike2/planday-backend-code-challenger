@@ -43,20 +43,55 @@ Spend the remainder of time optimising the code to make the endpoint faster.
    - [x] I just imported the System.Linq in the CarController.cs
  - [x] Use the POST /Car endpoint to request the cars mentioned in the above section and make sure the code is working, fixing any errors you come across
    - [x] The Paint.Type should be an enum and the string "strie" should be "stripe" I will only fix the string for now, I want to run the code first and do the refactoring part later
-   - [ ] Ok now I can send a POST request without error, but let see if I can find any problems with the output
-      - [?] I'm sending 5 doors and the response is "Four Door"
+   - [x] Ok now I can send a POST request without error, but let see if I can find any problems with the output
+      - [x] I'm sending 5 doors and the response is "Four Door"
          - It was a mistake into the ChassisCabin class, typeId: 0 = 3 doors and not 2, and TypeId: 1 = 5 doors accordingly to my input table
       - [x] Paint job is Empty
          - now It is returning  the paintJob but the return format is not good enought for me, I will go back here later
-      - [?] I'm only allowed to put 2 itens into the speeker list, but I need to create a car with 2 subwoofer and 1 standard (3)
-      - [?] The weels manufactory is "Plandrover" but I send "PlanfaRomeo"
-      - [ ] The code is not saving the cars into the sqlite
-    
-## Questions
-   1. Can I change the CarSpecificationInputModel? I want to do that because this value is setted using the cabinId from the chassis_recipe table, and the rule from the GetChassisType method from the ChassisCabin
-   2. Can I change the GetChassisType method from the ChassisCabin? currently there'is a rule that says: TypeId 0 = Two doors and TypeId 1 = Four doors but if I check my input table i can see that this rule is wrong because I have only cars with 5 and 3 doors, thats the reason that i need to do this change:
-      - **from:** TypeId 0 = 2doors **To:** TypeId: 1 = 3doors
-      - **from:** TypeId 1 = 2doors **To:** TypeId: 1 = 5doors
-   3. The speakers from the input tables are doorspeakers or dashboardSpeakers?
-   4. The SpeakerBuilder.cs only allow me to send 2 speakers but in the input table I have a car with 30 speakers, for example the Planborgini one, can I change this rule? If I the answare is not, can I change the SpeakerSpecification.cs model, to add an "Amount" attribute?
-   5. The last question is about the manufactory, the weels manufactory should be the same brand for exameple a car maded for PlanfaRomeo brand should have his 4 wheels manufactored by PlanfaRomeo too? 
+      - [x] I'm only allowed to put 2 itens into the speeker list, but I need to create a car with 2 subwoofer and 1 standard (3)
+      - [x] The weels manufactory is "Plandrover" but I send "PlanfaRomeo"
+      - [x] I need to check if the Painter code is already unlocked
+ - [x] creating unity tests
+      - [x] Painter
+      - [x] Wheels
+      - [x] Steels
+      - [x] Interior
+      - [x] Engine
+      - [x] Chassis
+      - [x] Assembly
+      - [x] Factory
+ - [ ] refactoring the code
+      - [x] First move the model from the controller to the domain
+      - [x] Creating folders for the interaces
+      - [x] Using the specific type for the ChassisPart in the 
+      - [x] Refactoring the Welder
+      - [x] Change the paint type to enum
+      - [ ] Add Exception Filter
+      - [x] MemoryCache in the EngineProvider
+      - [x] Turn it async for performance?!
+
+# **MY Thougts**
+1. Usually, I tend to separate the code in fewer class librearies, but for this excercise I notice that this isn't the main propouse, because I already had a code to work with, I just needed to understand and fix the logic.
+   this is the structure that I am used to use:
+   - CarFactory.api
+      - (Presentation) this one has the Api itself.
+   - CarFactory.services
+      - (Aplication) this one has all the logics from the code 
+   - CarFactory.domain
+      - (Domain) have every Intefaces and models
+   - CarFactory.data
+      - (Infraestructure) Used to call other applications like databases using entity framework or other Apis, and can have the entities too.
+   - CarFactory.test
+      - containing the unit tests
+
+2. About the logic in the CarFactory.cs.
+   - My first thought was to remove the foreach, and create a new model containing the number of cars for the same brand, that will make the code perform better for sure. But with the time analizing the code I realize that
+   this foreach was made on propouse, specialy to force to save informations in cache, and use the Slow Workers logic.
+
+3. About Entity Framework
+   - if I had used this framework will be easier to read the code and to fix future bugs related to this, but I don't think that this will increase the performance of the code and this was item 6 of my tasks.
+   - Usualy I use the UnityOfWork archtecture, to manage all the repositories and have more controll about my transactions.
+
+
+
+   

@@ -1,8 +1,11 @@
 ﻿using CarFactory_Domain;
+using CarFactory_Domain.Engine;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace CarFactory_Factory
 {
@@ -14,16 +17,14 @@ namespace CarFactory_Factory
         private IInteriorProvider _interiorProvider;
         private IWheelProvider _wheelProvider;
         private ICarAssembler _carAssembler;
-        private IStorageProvider _storageProvider;
 
         public CarFactory(
-            IChassisProvider chassisProvider, 
-            IEngineProvider engineProvider, 
-            IPainter painter, 
-            IInteriorProvider interiorProvider, 
-            IWheelProvider wheelProvider, 
-            ICarAssembler carAssembler,
-            IStorageProvider storageProvider)
+            IChassisProvider chassisProvider,
+            IEngineProvider engineProvider,
+            IPainter painter,
+            IInteriorProvider interiorProvider,
+            IWheelProvider wheelProvider,
+            ICarAssembler carAssembler)
         {
             _chassisProvider = chassisProvider;
             _engineProvider = engineProvider;
@@ -31,24 +32,73 @@ namespace CarFactory_Factory
             _interiorProvider = interiorProvider;
             _wheelProvider = wheelProvider;
             _carAssembler = carAssembler;
-            _storageProvider = storageProvider;
         }
 
-        public IEnumerable<Car> BuildCars(IEnumerable<CarSpecification> specs)
+        public  IEnumerable<Car> BuildCars(IEnumerable<CarSpecification> specs)
         {
             List<Car> cars = new List<Car>();
-            foreach(CarSpecification spec in specs)
+
+
+
+
+
+            Chassis chassis = null;
+            Engine engine = null;
+            Interior interior = null;
+            IEnumerable<Wheel> wheels = null;
+            Car car = null;
+
+            Task chassisTask = null;
+            Task engineTask = null;
+            Task interiorTask = null;
+            Task wheelsTask = null;
+
+            foreach (CarSpecification spec in specs)
             {
-                Chassis chassis = _chassisProvider.GetChassis(spec.Manufacturer, spec.NumberOfDoors);
-                CarFactory_Domain.Engine.Engine engine = _engineProvider.GetEngine(spec.Manufacturer);
-                Interior interior = _interiorProvider.GetInterior(spec);
-                IEnumerable<Wheel> wheels = _wheelProvider.GetWheels();
-                Car car = _carAssembler.AssembleCar(chassis, engine, interior, wheels);
-                Car paintedCar = _painter.PaintCar(car, spec.PaintJob);
-                cars.Add(paintedCar);
-                ;
+                chassisTask = new Task(() =>
+                {
+                    chassis = _chassisProvider.GetChassis(spec.Manufacturer);
+                });
+                engineTask = new Task(() =>
+                {
+                    engine = _engineProvider.GetEngine(spec.Manufacturer);
+                });
+                interiorTask = new Task(() =>
+                {
+                    interior = _interiorProvider.GetInterior(spec);
+                });
+                wheelsTask = new Task(() =>
+                {
+                    wheels = _wheelProvider.GetWheels();
+                });
+
+                chassisTask.Start();
+                engineTask.Start();
+                interiorTask.Start();
+                wheelsTask.Start();
+
+                Task.WaitAll(chassisTask, engineTask, interiorTask, wheelsTask);
+
+
+                car = _carAssembler.AssembleCar(chassis, engine, interior, wheels);
+
+                if (!spec.PaintJob.AreInstructionsUnlocked())
+                {
+                    car = _painter.PaintCar(car, spec.PaintJob);
+                }
+                else
+                {
+                    car.PaintJob = spec.PaintJob;
+                }
+                
+                cars.Add(car);
             }
+            
+            
             return cars;
         }
+
+
+
     }
 }

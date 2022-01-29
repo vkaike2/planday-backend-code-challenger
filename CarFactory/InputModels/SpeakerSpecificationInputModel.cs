@@ -9,5 +9,6 @@ namespace CarFactory_Domain.Models.InputModels
     public class SpeakerSpecificationInputModel
     {
         public bool IsSubwoofer { get; set; }
+        public int Amount { get; set; }
     }
 }

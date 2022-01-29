@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarFactory_Domain.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -13,13 +14,9 @@ namespace CarFactory_Domain
         private bool IsUnlocked = false;
         private readonly string Solution;
 
-        protected Color baseColor;
-        protected Color stripeColor;
-        protected Color dotColor;
-
-        public string BaseColor => stripeColor != Color.Empty ? baseColor.ToString() : null;
-        public string StripeColor => stripeColor != Color.Empty ? stripeColor.ToString() : null;
-        public string DotColor => dotColor != Color.Empty ? dotColor.ToString() : null;
+        public Color BaseColor { get; protected set; }
+        public Color StripeColor { get; protected set; }
+        public Color DotColor { get; protected set; }
 
         public PaintJob()
         {
@@ -32,7 +29,7 @@ namespace CarFactory_Domain
 
         public bool TryUnlockInstructions(string answer)
         {
-            if (AreInstructionsUnlocked()) throw new Exception("Already unlocked");
+            if (AreInstructionsUnlocked()) throw new CarFactoryException("Paint Job is already unlocked");
             IsUnlocked = EncodeString(answer) == EncodeString(Solution);
             return IsUnlocked;
         }
@@ -43,10 +40,13 @@ namespace CarFactory_Domain
 
         public static long EncodeString(string text)
         {
-            var result = new StringBuilder();
-            var key = "Planborghini";
-            for (int c = 0; c < text.Length; c++)
-                result.Append((char)((uint)text[c] ^ (uint)key[c % key.Length]));
+            StringBuilder result = new StringBuilder();
+            string key = "Planborghini";
+
+            for (int charactere = 0; charactere < text.Length; charactere++)
+            {
+                result.Append((char)((uint)text[charactere] ^ (uint)key[charactere % key.Length]));
+            }
             return result.ToString().GetHashCode();
         }
 
@@ -66,10 +66,9 @@ namespace CarFactory_Domain
 
     public class SingleColorPaintJob : PaintJob
     {
-        //public Color Color { get; set; }
         public SingleColorPaintJob(Color color) : base()
         {
-            baseColor = color;
+            BaseColor = color;
         }
 
         protected override int PuzzleAnswerLength() => 2;
@@ -77,12 +76,10 @@ namespace CarFactory_Domain
 
     public class StripedPaintJob : PaintJob
     {
-        //public Color BaseColor { get; set; }
-        //public Color StripeColor { get; set; }
         public StripedPaintJob(Color baseCol, Color stripeCol) : base()
         {
-            baseColor = baseCol;
-            stripeColor = stripeCol;
+            BaseColor = baseCol;
+            StripeColor = stripeCol;
         }
 
         protected override int PuzzleAnswerLength() => 4;
@@ -90,12 +87,10 @@ namespace CarFactory_Domain
 
     public class DottedPaintJob : PaintJob
     {
-        //public Color BaseColor { get; set; }
-        //public Color DotColor { get; set; }
         public DottedPaintJob(Color baseCol, Color dotCol) : base()
         {
-            baseColor = baseCol;
-            dotColor = dotCol;
+            BaseColor = baseCol;
+            DotColor = dotCol;
         }
 
         protected override int PuzzleAnswerLength() => 3;

@@ -6,5 +6,6 @@ namespace CarFactory_Storage
     public interface IGetChassisRecipeQuery
     {
         ChassisRecipe Get(Manufacturer manufacturer);
+        List<ChassisRecipe> GetAll();
     }
 }

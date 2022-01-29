@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using CarFactory_Domain;
+using CarFactory_Domain.Exceptions;
 using CarFactory_Factory;
 
 namespace CarFactory_Paint
@@ -8,7 +11,7 @@ namespace CarFactory_Paint
     {
         public Car PaintCar(Car car, PaintJob paint)
         {
-            if (car.Chassis == null) throw new Exception("Cannot paint a car without chassis");
+            if (car.Chassis == null) throw new CarFactoryException("Cannot paint a car without chassis");
 
             /*
              * Mix the paint
@@ -24,15 +27,15 @@ namespace CarFactory_Paint
 
             if (!paint.TryUnlockInstructions(solution))
             {
-                throw new Exception("Could not unlock paint instructions");
+                throw new CarFactoryException("Could not unlock paint instructions");
             }
             car.PaintJob = paint;
             return car;
         }
 
-        private static string FindPaintPassword(int passwordLength, long encodedPassword)
+        private string FindPaintPassword(int passwordLength, long encodedPassword)
         {
-            var rd = new Random();
+            Random rd = new Random();
             string CreateRandomString()
             {
                 char[] chars = new char[passwordLength];
@@ -44,9 +47,21 @@ namespace CarFactory_Paint
 
                 return new string(chars);
             }
+
+
             string str = CreateRandomString();
-            while (PaintJob.EncodeString(str) != encodedPassword) str = CreateRandomString();
+            Stopwatch stopwatch = new Stopwatch();
+
+            stopwatch.Start();
+            while (PaintJob.EncodeString(str) != encodedPassword)
+            {
+                str = CreateRandomString();
+            }
+       
+            
             return str;
         }
+
+        
     }
 }

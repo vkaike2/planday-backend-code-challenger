@@ -19,8 +19,8 @@ namespace CarFactory_Storage
         {
             using var conn = _storageProvider.GetConnection();
             using var cmd = new SQLiteCommand(conn);
-            
-            cmd.CommandText = @"Select * from chassis_recipe";
+
+            cmd.CommandText = $@"Select * from chassis_recipe where manufacturerId={(int)manufacturer}";
             using SQLiteDataReader rdr = cmd.ExecuteReader();
 
             var recipes = new List<ChassisRecipe>();
@@ -29,7 +29,24 @@ namespace CarFactory_Storage
                 recipes.Add(new ChassisRecipe((Manufacturer)rdr.GetInt32(1), rdr.GetInt32(2), rdr.GetInt32(3), rdr.GetInt32(4), rdr.GetInt32(5), rdr.GetInt32(6), rdr.GetInt32(7)));
             }
 
-            return recipes.First(x => x.Manufacturer == manufacturer);
+            return recipes.FirstOrDefault();
+        }
+
+        public List<ChassisRecipe> GetAll()
+        {
+            using var conn = _storageProvider.GetConnection();
+            using var cmd = new SQLiteCommand(conn);
+
+            cmd.CommandText = $@"Select * from chassis_recipe";
+            using SQLiteDataReader rdr = cmd.ExecuteReader();
+
+            var recipes = new List<ChassisRecipe>();
+            while (rdr.Read())
+            {
+                recipes.Add(new ChassisRecipe((Manufacturer)rdr.GetInt32(1), rdr.GetInt32(2), rdr.GetInt32(3), rdr.GetInt32(4), rdr.GetInt32(5), rdr.GetInt32(6), rdr.GetInt32(7)));
+            }
+
+            return recipes.ToList();
         }
     }
 }
