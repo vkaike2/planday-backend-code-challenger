@@ -17,12 +17,11 @@ namespace CarFactory.InputModels
             this.Data = data;
         }
 
-        public ResponseBase(Exception ex,string type)
+        public ResponseBase(Exception ex)
         {
             Error = new Error()
             {
-                Message = ex.Message,
-                Type = type
+                Message = ex.Message
             };
         }
     }

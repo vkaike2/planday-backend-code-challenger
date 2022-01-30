@@ -14,52 +14,25 @@ namespace CarFactory.ExceptionFilter
         {
             if (context.Exception == null) return;
 
-            if (context.Exception is CarFactoryException)
+            ContentResult response = new ContentResult
             {
-                context.Result = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception, "CarFactoryException")),
-                    StatusCode = 400,
-                    ContentType = "application/json"
-                };
+                Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception)),
+                ContentType = "application/json"
+            };
 
-            }
-            else if (context.Exception is ArgumentNullException)
+            if (context.Exception is CarFactoryException 
+                || context.Exception is ArgumentNullException
+                || context.Exception is ArgumentOutOfRangeException
+                || context.Exception is ArgumentException)
             {
-                context.Result = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception, typeof(ArgumentNullException).ToString())),
-                    StatusCode = 400,
-                    ContentType = "application/json"
-                };
-            }
-            else if (context.Exception is ArgumentOutOfRangeException)
-            {
-                context.Result = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception, typeof(ArgumentOutOfRangeException).ToString())),
-                    StatusCode = 400,
-                    ContentType = "application/json"
-                };
-            }
-            else if (context.Exception is ArgumentException)
-            {
-                context.Result = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception, typeof(ArgumentException).ToString())),
-                    StatusCode = 400,
-                    ContentType = "application/json"
-                };
+                response.StatusCode = 400;
             }
             else
             {
-                context.Result = new ContentResult
-                {
-                    Content = JsonConvert.SerializeObject(new ResponseBase<BuildCarOutputModel>(context.Exception, "Unknown Error")),
-                    StatusCode = 500,
-                    ContentType = "application/json"
-                };
+                response.StatusCode = 500;
             }
+
+
         }
     }
 }

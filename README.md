@@ -60,13 +60,13 @@ Spend the remainder of time optimising the code to make the endpoint faster.
       - [x] Chassis
       - [x] Assembly
       - [x] Factory
- - [ ] refactoring the code
+ - [x] refactoring the code
       - [x] First move the model from the controller to the domain
       - [x] Creating folders for the interaces
       - [x] Using the specific type for the ChassisPart in the 
       - [x] Refactoring the Welder
       - [x] Change the paint type to enum
-      - [ ] Add Exception Filter
+      - [x] Add Exception Filter
       - [x] MemoryCache in the EngineProvider
       - [x] Turn it async for performance?!
 
